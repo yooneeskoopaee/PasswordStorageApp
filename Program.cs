@@ -37,22 +37,29 @@ namespace PasswordStorageApp
 
         static void SaveCredentials(string username, string password)
         {
-            byte[] salt = RandomNumberGenerator.GetBytes(saltSize);
+            try
+            {
+                byte[] salt = RandomNumberGenerator.GetBytes(saltSize);
 
-            byte[] hash = Rfc2898DeriveBytes.Pbkdf2(
-                password:password,
-                salt: salt,
-                iterations: iterations,
-                hashAlgorithm: HashAlgorithmName.SHA256,
-                outputLength: hashSize                               
-                );
+                byte[] hash = Rfc2898DeriveBytes.Pbkdf2(
+                    password:password,
+                    salt: salt,
+                    iterations: iterations,
+                    hashAlgorithm: HashAlgorithmName.SHA256,
+                    outputLength: hashSize                               
+                    );
 
-            var encodeUsername = Convert.ToBase64String(Encoding.UTF8.GetBytes(username));
-            var encodeSalt = Convert.ToBase64String(salt);
-            var encodeHash = Convert.ToBase64String(hash);
+                var encodeUsername = Convert.ToBase64String(Encoding.UTF8.GetBytes(username));
+                var encodeSalt = Convert.ToBase64String(salt);
+                var encodeHash = Convert.ToBase64String(hash);
 
-            var line = $"{encodeUsername}:{iterations}:{encodeSalt}:{encodeHash}";
-            File.AppendAllText("users.txt", line + Environment.NewLine);
+                var line = $"{encodeUsername}:{iterations}:{encodeSalt}:{encodeHash}";
+                File.AppendAllText("users.txt", line + Environment.NewLine);
+            }
+            catch (IOException ex)
+            {
+                Console.WriteLine($"Error saving credentials: {ex.Message}");
+            }            
         }
 
         static bool VerifyPassword(string password, byte[] salt, byte[] expectedHash, int iterations)
